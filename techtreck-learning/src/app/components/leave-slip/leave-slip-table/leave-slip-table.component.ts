@@ -118,8 +118,8 @@ export class LeaveSlipTableComponent {
     this.onDeleteLeaveEvent.emit(index);
   }
 
-  onEdit([oldLeave, newLeave]: [LeaveSlip, LeaveSlip]) {
-    this.onEditLeaveEvent.emit([oldLeave, newLeave]);
+  onEdit(updatedLeave: [LeaveSlip, LeaveSlip]) {
+    this.onEditLeaveEvent.emit(updatedLeave);
     // this.closeEditWindow();
   }
 

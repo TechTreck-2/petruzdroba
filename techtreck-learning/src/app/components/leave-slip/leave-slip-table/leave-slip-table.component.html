@@ -30,7 +30,7 @@
 
       @for(leave of list; track leave){
       <tr class="table-row">
-        <td>{{leave.date | date: 'mediumDate'}}</td>
+        <td>{{leave.startTime | date: 'mediumDate'}}</td>
         <td>{{leave.startTime | date: 'hh:mm a'}}</td>
         <td>{{leave.endTime | date: 'hh:mm a'}}</td>
         <td>{{leave.description}}</td>
@@ -39,7 +39,7 @@
         </td>
         <td><button class="btn-icon-primary" (click)="openEditWindow(leave)" [disabled]="disabledEdit(leave)"><i
               class="fa-solid fa-pen" title="Edit session"></i></button></td>
-        <td><button class="btn-icon" (click)="onDelete(leaveList.indexOf(leave))"><i class="fas fa-trash"
+        <td><button class="btn-icon" (click)="onDelete(leave.id!)"><i class="fas fa-trash"
               title="Delete leave entry"></i></button>
         </td>
       </tr>
@@ -50,7 +50,7 @@
 </div>
 
 <app-edit-box [isOpen]="isOpen"
-  [title]="selectedLeaveSlip ? 'Edit leave slip - ' + (selectedLeaveSlip.date | date:'mediumDate') : 'Edit leave slip'"
+  [title]="selectedLeaveSlip ? 'Edit leave slip - ' + (selectedLeaveSlip.startTime | date:'mediumDate') : 'Edit leave slip'"
   (close)="closeEditWindow()">
   <app-leave-form [leaveSlip]="selectedLeaveSlip" (closeEditWindow)="closeEditWindow()"
     (leaveEdited)="onEdit($event)" />
