@@ -2,9 +2,7 @@ package com.pz.backend.service;
 
 import com.pz.backend.common.TimeRelation;
 import com.pz.backend.dao.LeaveRequestRepository;
-import com.pz.backend.entity.LeaveRequest;
-import com.pz.backend.entity.Status;
-import com.pz.backend.entity.UserData;
+import com.pz.backend.entity.*;
 import com.pz.backend.exceptions.AlreadyExistsException;
 import com.pz.backend.exceptions.InsufficientPersonalTimeException;
 import com.pz.backend.exceptions.InsufficientVacationDaysException;
@@ -95,7 +93,10 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
         if (requestedTime > takenTime)
             throw new InsufficientPersonalTimeException("Not enough personal time left");
 
-        return null;
+        UserAuth auth = entityManager.getReference(UserAuth.class, userId);
+        LeaveRequest leaveRequest = new LeaveRequest(auth, startTime, endTime, description);
+
+        return repository.save(leaveRequest);
     }
 
     @Override

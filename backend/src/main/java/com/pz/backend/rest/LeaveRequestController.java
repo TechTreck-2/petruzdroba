@@ -53,7 +53,7 @@ public class LeaveRequestController {
         return leaveRequestService.getRemaining(userId);
     }
 
-    @PreAuthorize("@leaveRequestSecurity.canAccessUser(#request.id, authentication)")
+    @PreAuthorize("@leaveRequestSecurity.canAccessUser(#request.userId, authentication)")
     @PostMapping("/leaverequest")
     public LeaveRequest post(@Valid @RequestBody LeaveRequestPostRequest request) throws AlreadyExistsException, InsufficientPersonalTimeException {
         return leaveRequestService.post(

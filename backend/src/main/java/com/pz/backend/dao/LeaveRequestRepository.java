@@ -20,6 +20,6 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
     @Modifying
     @Query("UPDATE LeaveRequest req SET req.status = 'IGNORED' " +
             "WHERE req.startTime < :now " +
-            "AND reeq.status IN ('PENDING', 'ACCEPTED', 'DENIED')")
+            "AND req.status IN ('PENDING', 'ACCEPTED', 'DENIED')")
     void updateLeaveRequestsToIgnored(@Param("now") Instant now);
 }

@@ -24,7 +24,7 @@ public class UserData {
 
     private int workHours=8;
     private int vacationDays=12;
-    private int personalTime=12;
+    private int personalTime=7_200_000;
 
     @Column(length = 50)
     @Enumerated(EnumType.STRING)
