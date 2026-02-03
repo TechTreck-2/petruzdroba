@@ -5,6 +5,7 @@ import com.pz.backend.dao.WorkLogRepository;
 import com.pz.backend.entity.WorkLog;
 import com.pz.backend.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+@Service
 public class ReportServiceImpl implements ReportService {
 
     private final WorkLogRepository repository;
