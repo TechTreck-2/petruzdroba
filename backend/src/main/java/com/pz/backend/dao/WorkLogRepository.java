@@ -12,4 +12,7 @@ public interface WorkLogRepository extends JpaRepository<WorkLog, Long> {
     WorkLog findByUserIdAndDate(Long userId, Instant date);
 
     void deleteByUserIdAndDate(Long userId, Instant date);
+
+    List<WorkLog> findByUserIdAndDateBetween(Long userId, Instant start, Instant end);
+
 }
