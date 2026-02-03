@@ -1,0 +1,16 @@
+<app-edit-box [isOpen]="isOpen" title="Download Monthly Report" (close)="onClose()">
+  <div class="message-container">
+    <p class="dialog-message">How would you like to receive your monthly work report?</p>
+  </div>
+
+  <div class="button-group">
+    <button class="btn-form" (click)="downloadLocally()">
+      <i class="fa-solid fa-download"></i>
+      Download Locally
+    </button>
+    <button class="btn-form" (click)="sendToEmail()">
+      <i class="fa-solid fa-envelope"></i>
+      Send to Email
+    </button>
+  </div>
+</app-edit-box>
