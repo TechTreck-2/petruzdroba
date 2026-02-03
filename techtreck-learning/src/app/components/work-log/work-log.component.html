@@ -3,7 +3,11 @@
 <div class="log-group">
   <div class="header">
     <app-date-filter (dateFilter)="onChangeDateFilter($event)" calendarPicker="past" />
-    <button class="btn-add" (click)="openAddWindow()"><i class="fa-solid fa-plus"></i></button>
+    <div class="btn-group">
+      <button class="btn-add" (click)="openAddWindow()" title="Add a new Session"><i class="fa-solid fa-plus"></i></button>
+      <button class="btn-add" (click)="onDownloadReport()" title="Download Monthly Report"><i class="fa-solid fa-file-csv"></i></button>
+    </div>
+
   </div>
   <table class="log-table">
     <tbody>
@@ -57,3 +61,9 @@
 
 <app-edit-session [isOpen]="isOpenEdit" [session]="selectedSession" (closeWindow)="closeEditWindow()" />
 <app-add-session [isOpen]="isOpenAdd" (closeWindow)="closeAddWindow()" />
+<app-report-download-dialog
+  [isOpen]="isOpenReportDialog"
+  (closeWindow)="closeReportDialog()"
+  (downloadSelected)="onReportDownloadSelected()"
+  (emailSelected)="onReportEmailSelected()" />
+

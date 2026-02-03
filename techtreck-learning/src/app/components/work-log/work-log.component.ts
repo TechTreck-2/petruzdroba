@@ -7,6 +7,8 @@ import { Session } from '../../model/session.interface';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { EditSessionComponent } from './edit-session/edit-session.component';
 import { AddSessionComponent } from './add-session/add-session.component';
+import { ReportService } from '../../service/report.service';
+import { ReportDownloadDialogComponent } from './report-download-dialog/report-download-dialog.component';
 
 @Component({
   selector: 'app-work-log',
@@ -18,12 +20,15 @@ import { AddSessionComponent } from './add-session/add-session.component';
     MatPaginatorModule,
     EditSessionComponent,
     AddSessionComponent,
+    ReportDownloadDialogComponent,
   ],
   templateUrl: './work-log.component.html',
   styleUrl: './work-log.component.css',
 })
 export class WorkLogComponent implements OnInit {
   private workLogService = inject(WorkLogService);
+  private reportService = inject(ReportService);
+
   private dateFilter: DateFilter = {
     startDate: new Date(0),
     endDate: new Date(0),
@@ -39,6 +44,7 @@ export class WorkLogComponent implements OnInit {
   protected isOpenEdit: boolean = false;
   protected selectedSession: Session | null = null;
   protected isOpenAdd: boolean = false;
+  protected isOpenReportDialog: boolean = false;
 
   async ngOnInit(): Promise<void> {
     await this.workLogService.initialize();
@@ -175,5 +181,23 @@ export class WorkLogComponent implements OnInit {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
     this.paginatedData = this.filteredWorkLog.slice(startIndex, endIndex);
+  }
+
+  onDownloadReport(){
+    this.isOpenReportDialog = true;
+  }
+
+  closeReportDialog() {
+    this.isOpenReportDialog = false;
+  }
+
+  onReportDownloadSelected() {
+    this.reportService.downloadReport();
+    this.closeReportDialog();
+  }
+
+  onReportEmailSelected() {
+    // this.reportService.sendReportToEmail();
+    this.closeReportDialog();
   }
 }
