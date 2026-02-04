@@ -1,7 +1,10 @@
 package com.pz.backend.rest;
 
 import com.pz.backend.dto.ReportGetRequest;
+import com.pz.backend.dto.ReportPostRequest;
+import com.pz.backend.exceptions.NotFoundException;
 import com.pz.backend.service.ReportService;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +25,7 @@ public class ReportController {
     public void downloadMonthlyReport(HttpServletResponse response,
                                       @RequestParam Long userId,
                                       @RequestParam Integer month,
-                                      @RequestParam Integer year) throws IOException {
+                                      @RequestParam Integer year) throws NotFoundException,IOException {
 
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=worklog.csv");
@@ -31,4 +34,8 @@ public class ReportController {
         csvData.writeTo(response.getOutputStream());
     }
 
+    @PostMapping("/reports/email")
+    public void sendEmail(@RequestBody ReportPostRequest request) throws NotFoundException, IOException, MessagingException{
+        reportService.email(request.userId(), request.email(), request.month(), request.year());
+    }
 }
