@@ -13,12 +13,11 @@ export class ReportService {
   private routerService = inject(Router);
   private http = inject(HttpClient);
 
-  downloadReport(): void {
-    const today = new Date();
+  downloadReport(userId:number = this.userData.user().id, date: Date = new Date()): void {
 
     this.http
       .get(
-        `${environment.apiUrl}/reports/monthly?userId=${this.userData.user().id}&month=${today.getMonth() + 1}&year=${today.getFullYear()}`,
+        `${environment.apiUrl}/reports/monthly?userId=${userId}&month=${date.getMonth() + 1}&year=${date.getFullYear()}`,
         { responseType: 'blob' },
       )
       .pipe(take(1))
@@ -28,9 +27,31 @@ export class ReportService {
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'worklog.csv';
+          a.download = `user-${userId}.csv`;
           a.click();
           window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          this.routerService.navigate(['/error', err.status]);
+        },
+      });
+  }
+
+  emailReport(userId: number = this.userData.user().id, email: string = this.userData.user().email, date: Date = new Date()): void {
+    this.http
+      .post(
+        `${environment.apiUrl}/reports/email`,
+        {
+          userId: userId,
+          email: email,
+          month: date.getMonth() + 1,
+          year: date.getFullYear(),
+        },
+        { responseType: 'text' },
+      )
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
         },
         error: (err) => {
           this.routerService.navigate(['/error', err.status]);

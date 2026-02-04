@@ -197,7 +197,7 @@ export class WorkLogComponent implements OnInit {
   }
 
   onReportEmailSelected() {
-    // this.reportService.sendReportToEmail();
+    this.reportService.emailReport();
     this.closeReportDialog();
   }
 }
