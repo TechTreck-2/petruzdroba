@@ -20,7 +20,7 @@ public class CsvReportWriterImpl implements CsvReportWriter{
     @Override
     public void write(List<WorkLog> workLogs, OutputStream out, ZoneId zoneId) throws IOException {
 
-        String header = "LOGIN----------LOGOUT------HOURS-WORKED\n";
+        String header = "LOGIN,LOGOUT,HOURS-WORKED\n";
         out.write(header.getBytes(StandardCharsets.UTF_8));
 
         for (WorkLog log : workLogs) {

@@ -6,6 +6,7 @@ import com.pz.backend.exceptions.NotFoundException;
 import com.pz.backend.service.ReportService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
@@ -21,6 +22,7 @@ public class ReportController {
         this.reportService = reportService;
     }
 
+    @PreAuthorize("hasRole('ADMIN') OR @reportSecurity.canAccessUser(#userId, authentication)")
     @GetMapping("/reports/monthly")
     public void downloadMonthlyReport(HttpServletResponse response,
                                       @RequestParam Long userId,
@@ -34,6 +36,7 @@ public class ReportController {
         csvData.writeTo(response.getOutputStream());
     }
 
+    @PreAuthorize("hasRole('ADMIN') OR @reportSecurity.canAccessUser(#request.userId, authentication)")
     @PostMapping("/reports/email")
     public void sendEmail(@RequestBody ReportPostRequest request) throws NotFoundException, IOException, MessagingException{
         reportService.email(request.userId(), request.email(), request.month(), request.year());
