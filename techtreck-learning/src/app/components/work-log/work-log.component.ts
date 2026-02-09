@@ -191,13 +191,13 @@ export class WorkLogComponent implements OnInit {
     this.isOpenReportDialog = false;
   }
 
-  onReportDownloadSelected() {
-    this.reportService.downloadReport();
+  onReportDownloadSelected(data: { month: number; year: number }) {
+    this.reportService.downloadReport(undefined, new Date(data.year, data.month - 1));
     this.closeReportDialog();
   }
 
-  onReportEmailSelected() {
-    this.reportService.emailReport();
+  onReportEmailSelected(data: { month: number; year: number }) {
+    this.reportService.emailReport(undefined, undefined, new Date(data.year, data.month - 1));
     this.closeReportDialog();
   }
 }

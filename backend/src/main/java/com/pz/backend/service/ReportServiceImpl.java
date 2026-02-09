@@ -43,10 +43,6 @@ public class ReportServiceImpl implements ReportService {
 
         List<WorkLog> workLogs = repository.findByUserIdAndDateBetween(userId, startDate, endDate);
 
-        if (workLogs.isEmpty()) {
-            throw new NotFoundException(WorkLog.class.getName(), userId);
-        }
-
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         csvReportWriter.write(workLogs, outputStream, zoneId);

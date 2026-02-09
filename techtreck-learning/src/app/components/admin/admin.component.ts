@@ -99,13 +99,13 @@ export class AdminComponent implements OnInit {
     this.selectedUser = null;
   }
 
-  onReportDownloadSelected() {
-    this.reportService.downloadReport(this.selectedUser?.id);
+  onReportDownloadSelected(data: { month: number; year: number }) {
+    this.reportService.downloadReport(this.selectedUser?.id, new Date(data.year, data.month - 1));
     this.closeReportDialog();
   }
 
-  onReportEmailSelected() {
-    this.reportService.emailReport(this.selectedUser?.id, this.userDataService.user().email);
+  onReportEmailSelected(data: { month: number; year: number }) {
+    this.reportService.emailReport(this.selectedUser?.id, this.userDataService.user().email, new Date(data.year, data.month - 1));
     this.closeReportDialog();
   }
 }

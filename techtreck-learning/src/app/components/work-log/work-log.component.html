@@ -64,6 +64,5 @@
 <app-report-download-dialog
   [isOpen]="isOpenReportDialog"
   (closeWindow)="closeReportDialog()"
-  (downloadSelected)="onReportDownloadSelected()"
-  (emailSelected)="onReportEmailSelected()" />
-
+  (downloadSelected)="onReportDownloadSelected($event)"
+  (emailSelected)="onReportEmailSelected($event)" />
