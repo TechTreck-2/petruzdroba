@@ -50,14 +50,26 @@
               </tr>
               <tr>
                 <td>
-                  <button
-                    class="btn-icon-primary"
-                    (click)="openEditWindow(user)"
-                    [disabled]="user?.role === 'ADMIN' || user?.role === 'admin'"
-                    [title]="user?.role === 'ADMIN' || user?.role === 'admin' ? 'Cannot edit admin users' : 'Edit User'"
-                  >
-                    <i class="fa-solid fa-pen"></i>
-                  </button>
+
+                    <button
+                      class="btn-icon-primary"
+                      (click)="openEditWindow(user)"
+                      [disabled]="user?.role === 'ADMIN' || user?.role === 'admin'"
+                      [title]="user?.role === 'ADMIN' || user?.role === 'admin' ? 'Cannot edit admin users' : 'Edit User'"
+                    >
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+
+                    <button
+                      class="btn-icon-primary"
+                      (click)="onDownloadReport(user)"
+                      [disabled]="user?.role === 'ADMIN' || user?.role === 'admin'"
+                      [title]="user?.role === 'ADMIN' || user?.role === 'admin' ? 'Cannot download admin worklog' : 'Download WorkLog Data'"
+                    >
+                      <i class="fa-solid fa-file-csv"></i>
+                    </button>
+
+
                 </td>
               </tr>
             </tbody>
@@ -91,3 +103,8 @@
   [user]="selectedUser"
   (closeWindow)="closeEditWindow()"
 />
+<app-report-download-dialog
+  [isOpen]="isOpenReportDialog"
+  (closeWindow)="closeReportDialog()"
+  (downloadSelected)="onReportDownloadSelected()"
+  (emailSelected)="onReportEmailSelected()" />

@@ -8,7 +8,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { EditSessionComponent } from './edit-session/edit-session.component';
 import { AddSessionComponent } from './add-session/add-session.component';
 import { ReportService } from '../../service/report.service';
-import { ReportDownloadDialogComponent } from './report-download-dialog/report-download-dialog.component';
+import { ReportDownloadDialogComponent } from '../../shared/report-download-dialog/report-download-dialog.component';
 
 @Component({
   selector: 'app-work-log',

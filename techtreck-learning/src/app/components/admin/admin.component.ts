@@ -9,6 +9,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { EditUserComponent } from './edit-user/edit-user.component';
+import { UserDataService } from '../../service/user-data.service';
+import { ReportService } from '../../service/report.service';
+import { ReportDownloadDialogComponent } from '../../shared/report-download-dialog/report-download-dialog.component';
 
 @Component({
   selector: 'app-admin',
@@ -21,6 +24,7 @@ import { EditUserComponent } from './edit-user/edit-user.component';
     MatIconModule,
     FormsModule,
     EditUserComponent,
+    ReportDownloadDialogComponent,
   ],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.css',
@@ -28,17 +32,18 @@ import { EditUserComponent } from './edit-user/edit-user.component';
 export class AdminComponent implements OnInit {
   private adminService = inject(AdminService);
   private managerService = inject(ManagerService);
+  private userDataService = inject(UserDataService);
+  private reportService = inject(ReportService);
 
   searchText = signal('');
   isOpenEdit = false;
+  protected isOpenReportDialog: boolean = false;
   selectedUser: UserData | null = null;
 
   private benefits = signal<Map<number, number>>(new Map());
 
   adminUsers = computed(() =>
-    this.adminService
-      .getAdminData()
-      .filter((u) => u.role !== 'admin')
+    this.adminService.getAdminData().filter((u) => u.role !== 'admin'),
   );
 
   filteredUsers = computed(() => {
@@ -47,9 +52,7 @@ export class AdminComponent implements OnInit {
 
     if (!text) return users;
 
-    return users.filter((u) =>
-      u.email.toLowerCase().includes(text)
-    );
+    return users.filter((u) => u.email.toLowerCase().includes(text));
   });
 
   async ngOnInit(): Promise<void> {
@@ -84,5 +87,25 @@ export class AdminComponent implements OnInit {
 
     await this.adminService.initialize();
     await this.loadVacationUsage();
+  }
+
+  onDownloadReport(user: UserData) {
+    this.isOpenReportDialog = true;
+    this.selectedUser = user;
+  }
+
+  closeReportDialog() {
+    this.isOpenReportDialog = false;
+    this.selectedUser = null;
+  }
+
+  onReportDownloadSelected() {
+    this.reportService.downloadReport(this.selectedUser?.id);
+    this.closeReportDialog();
+  }
+
+  onReportEmailSelected() {
+    this.reportService.emailReport(this.selectedUser?.id, this.userDataService.user().email);
+    this.closeReportDialog();
   }
 }

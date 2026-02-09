@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EditBoxComponent } from '../../../shared/edit-box/edit-box.component';
+import { EditBoxComponent } from '../edit-box/edit-box.component';
 
 @Component({
   selector: 'app-report-download-dialog',
