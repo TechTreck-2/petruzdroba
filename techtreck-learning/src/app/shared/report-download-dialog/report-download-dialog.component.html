@@ -1,0 +1,42 @@
+<app-edit-box
+  [isOpen]="isOpen"
+  title="Download Monthly Report"
+  (close)="onClose()"
+>
+  <div class="message-container">
+    <p class="dialog-message">
+      How would you like to receive your monthly work report?
+    </p>
+  </div>
+
+  <div class="date-picker-group">
+    <div class="date-input">
+      <label for="month">Month:</label>
+      <select id="month" [(ngModel)]="selectedMonth">
+        @for (month of months; track $index) {
+          <option [value]="$index + 1" [disabled]="monthDisabled($index)">{{ month }}</option>
+        }
+      </select>
+    </div>
+    <div class="date-input">
+      <label for="year">Year:</label>
+      <select id="year" [(ngModel)]="selectedYear">
+        @for (year of years; track year) {
+          <option [value]="year">{{ year }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button class="btn-form" (click)="downloadLocally()">
+      <i class="fa-solid fa-download"></i>
+      Download Locally
+    </button>
+
+    <button class="btn-form" (click)="sendToEmail()">
+      <i class="fa-solid fa-envelope"></i>
+      Send to Email
+    </button>
+  </div>
+</app-edit-box>

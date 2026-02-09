@@ -1,0 +1,78 @@
+.message-container {
+  margin-bottom: 20px;
+}
+
+.dialog-message {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 100%;
+  line-height: 1.5;
+}
+
+.date-picker-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  align-items: flex-end;
+}
+
+.date-input {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.date-input label {
+  color: var(--text-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.date-input select {
+  padding: 8px 10px;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.date-input select:hover {
+  border-color: var(--primary-hover-color);
+}
+
+.date-input select:focus {
+  outline: none;
+  border-color: var(--primary-hover-color);
+  box-shadow: 0 0 3px var(--primary-color);
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.btn-form {
+  color: var(--background-color);
+  font-size: large;
+  padding: 10px 14px;
+  background-color: var(--primary-color);
+  border-radius: 6px;
+  transition: all 0.6s ease;
+  box-shadow: 7px 7px 12px var(--shadow-color);
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-form:hover {
+  background-color: var(--primary-hover-color);
+}
+
+.btn-form i {
+  font-size: 16px;
+}
+
