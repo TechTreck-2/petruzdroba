@@ -213,9 +213,12 @@ export class ManagerService {
     );
   }
 
-  getRemainingTime(userId: number): number {
-    const userLeaves = this.managerData().leaves[userId];
-    return userLeaves ? userLeaves.remainingTime : 0;
+  getRemainingTime(userId: number): Promise<number> {
+    return firstValueFrom(
+      this.http.get<number>(
+        `${environment.apiUrl}/leaverequest/remaining/${userId}`,
+      ),
+    );
   }
 
   getUserById(userId: number): UserData | null {

@@ -51,10 +51,11 @@ export class ManagerLeavesComponent implements OnInit {
     for (const l of this.pendingLeaves) {
       if (!this.remainingTimeCache.has(l.userId)) {
         try {
-          const remaining = this.managerService.getRemainingTime(l.userId);
-          this.remainingTimeCache.set(l.userId, remaining);
+          const remaining = await this.managerService.getRemainingTime(l.userId);
+          this.remainingTimeCache.set(l.userId,remaining);
 
           const duration = new Date(l.leaveSlip.endTime).getTime() - new Date(l.leaveSlip.startTime).getTime();
+          console.log(l.leaveSlip.id, 'duration:', duration, 'remaining:', remaining);
           const cacheKey = `${l.userId}-${l.leaveSlip.id}`;
           this.validLeaveCache.set(cacheKey, remaining >= duration);
         } catch (err) {
