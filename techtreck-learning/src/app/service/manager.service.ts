@@ -1,5 +1,5 @@
 import { inject, Injectable, signal, computed } from '@angular/core';
-import { LeaveWithUser, ManagerData } from '../model/manager-data.interface';
+import { LeaveWithUser, ManagerData, VacationWithUser } from '../model/manager-data.interface';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { take, firstValueFrom } from 'rxjs';
@@ -8,10 +8,6 @@ import { UserData } from '../model/user-data.interface';
 import { LeaveSlip } from '../model/leave-slip.interface';
 import { environment } from '../../environments/environment';
 
-interface VacationWithUser {
-  userId: number;
-  vacation: Vacation;
-}
 
 @Injectable({ providedIn: 'root' })
 export class ManagerService {
@@ -19,6 +15,7 @@ export class ManagerService {
   private http = inject(HttpClient);
 
   private allVacations = signal<Vacation[]>([]);
+  private allLeaveSlips = signal<LeaveSlip[]>([]);
 
   private managerData = signal<ManagerData>({
     vacations: {},
@@ -37,22 +34,37 @@ export class ManagerService {
   }
 
   private fetchManagerData(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.http
-        .get<Vacation[]>(`${environment.apiUrl}/vacation`)
-        .pipe(take(1))
-        .subscribe({
-          next: (vacations) => {
-            this.allVacations.set(vacations);
-            resolve();
-          },
-          error: (err) => {
-            console.error('Error fetching all vacations:', err);
-            this.routerService.navigate(['/error', err.status]);
-            reject(err);
-          },
-        });
-
+    return Promise.all([
+      // Fetch vacations
+      firstValueFrom(
+        this.http.get<Vacation[]>(`${environment.apiUrl}/vacation`)
+      ).then(
+        (vacations) => {
+          console.log('Vacations loaded:', vacations);
+          this.allVacations.set(vacations);
+        },
+        (err) => {
+          console.error('Error fetching all vacations:', err);
+          this.routerService.navigate(['/error', err.status]);
+          throw err;
+        }
+      ),
+      // Fetch leave slips
+      firstValueFrom(
+        this.http.get<LeaveSlip[]>(`${environment.apiUrl}/leaverequest`)
+      ).then(
+        (leaveSlips) => {
+          console.log('Leave slips loaded:', leaveSlips);
+          this.allLeaveSlips.set(leaveSlips);
+        },
+        (err) => {
+          console.error('Error fetching leave slips:', err);
+          this.routerService.navigate(['/error', err.status]);
+          throw err;
+        }
+      ),
+    ]).then(() => {
+      console.log('Manager data initialization complete');
       this.managerData.set({
         vacations: {},
         leaves: {},
@@ -78,8 +90,47 @@ export class ManagerService {
       }));
   });
 
-  readonly futureLeaves = computed(() => []);
-  readonly pastLeaves = computed(() => []);
+  readonly pendingLeavesComputed = computed(() => {
+    return this.allLeaveSlips()
+      .filter((l) => l.status === 'pending' || l.status === 'PENDING')
+      .map((leaveSlip) => ({
+        userId: leaveSlip.userId!,
+        leaveSlip,
+      }));
+  });
+
+  readonly completedLeavesComputed = computed(() => {
+    return this.allLeaveSlips()
+      .filter((l) => l.status !== 'pending' && l.status !== 'PENDING')
+      .map((leaveSlip) => ({
+        userId: leaveSlip.userId!,
+        leaveSlip,
+      }));
+  });
+
+  readonly futureLeaves = computed(() => {
+    const now = new Date();
+    const future = this.allLeaveSlips()
+      .filter((l) => new Date(l.date) > now)
+      .map((leaveSlip) => ({
+        userId: leaveSlip.userId!,
+        leaveSlip,
+      }));
+    console.log('Future leaves computed:', future, 'now:', now);
+    return future;
+  });
+
+  readonly pastLeaves = computed(() => {
+    const now = new Date();
+    const past = this.allLeaveSlips()
+      .filter((l) => new Date(l.date) <= now)
+      .map((leaveSlip) => ({
+        userId: leaveSlip.userId!,
+        leaveSlip,
+      }));
+    console.log('Past leaves computed:', past, 'now:', now);
+    return past;
+  });
 
   acceptVacation(vacationWithUser: VacationWithUser): Promise<void> {
     return this.updateVacationStatus(vacationWithUser, 'ACCEPTED');
@@ -121,49 +172,31 @@ export class ManagerService {
     });
   }
 
-  acceptLeave(leaveWithUser: LeaveWithUser): Promise<void> {
-    return this.updateLeaveStatus(leaveWithUser, 'accepted');
+  acceptLeave(leaveSlipWithUser: LeaveWithUser): Promise<void> {
+    return this.updateLeaveStatus(leaveSlipWithUser, 'accepted');
   }
 
-  rejectLeave(leaveWithUser: LeaveWithUser): Promise<void> {
-    return this.updateLeaveStatus(leaveWithUser, 'denied');
+  rejectLeave(leaveSlipWithUser: LeaveWithUser): Promise<void> {
+    return this.updateLeaveStatus(leaveSlipWithUser, 'denied');
   }
 
-  undoLeave(leaveWithUser: LeaveWithUser): Promise<void> {
-    return this.updateLeaveStatus(leaveWithUser, 'pending');
+  undoLeave(leaveSlipWithUser: LeaveWithUser): Promise<void> {
+    return this.updateLeaveStatus(leaveSlipWithUser, 'pending');
   }
 
   private updateLeaveStatus(
-    leaveWithUser: LeaveWithUser,
+    leaveSlipWithUser: LeaveWithUser,
     status: 'accepted' | 'denied' | 'pending',
   ): Promise<void> {
-    const { userId, leave } = leaveWithUser;
-    const userLeaves = this.managerData().leaves[userId];
-    if (!userLeaves) return Promise.reject();
+    const { leaveSlip } = leaveSlipWithUser;
+    if (!leaveSlip.id) return Promise.reject('Leave slip ID required');
 
     return new Promise((resolve, reject) => {
       this.http
-        .put(`${environment.apiUrl}/leaveslip/update/`, {
-          userId,
-          data: {
-            futureLeaves: userLeaves.futureLeaves.map((l) =>
-              l.date === leave.date && l.description === leave.description
-                ? { ...l, status }
-                : l,
-            ),
-            pastLeaves: userLeaves.pastLeaves,
-            remainingTime:
-              status === 'accepted' && leave.status === 'pending'
-                ? userLeaves.remainingTime -
-                  (new Date(leave.endTime).getTime() -
-                    new Date(leave.startTime).getTime())
-                : status === 'pending' && leave.status === 'accepted'
-                  ? userLeaves.remainingTime +
-                    (new Date(leave.endTime).getTime() -
-                      new Date(leave.startTime).getTime())
-                  : userLeaves.remainingTime,
-          },
-        })
+        .put<LeaveSlip>(
+          `${environment.apiUrl}/leaveslip/${leaveSlip.id}/${status}`,
+          {},
+        )
         .pipe(take(1))
         .subscribe({
           next: () => {
@@ -220,7 +253,7 @@ export class ManagerService {
     return -1;
   }
 
-  getLeaveIndex(leaveWithUser: LeaveWithUser): number {
+  getLeaveIndex(leaveSlipWithUser: LeaveWithUser): number {
     return -1;
   }
 }

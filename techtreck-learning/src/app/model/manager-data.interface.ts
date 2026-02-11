@@ -15,5 +15,5 @@ export interface VacationWithUser {
 
 export interface LeaveWithUser {
   userId: number;
-  leave: LeaveSlip;
+  leaveSlip: LeaveSlip;
 }
