@@ -40,11 +40,9 @@ export class ManagerService {
         this.http.get<Vacation[]>(`${environment.apiUrl}/vacation`)
       ).then(
         (vacations) => {
-          console.log('Vacations loaded:', vacations);
           this.allVacations.set(vacations);
         },
         (err) => {
-          console.error('Error fetching all vacations:', err);
           this.routerService.navigate(['/error', err.status]);
           throw err;
         }
@@ -54,17 +52,14 @@ export class ManagerService {
         this.http.get<LeaveSlip[]>(`${environment.apiUrl}/leaverequest`)
       ).then(
         (leaveSlips) => {
-          console.log('Leave slips loaded:', leaveSlips);
           this.allLeaveSlips.set(leaveSlips);
         },
         (err) => {
-          console.error('Error fetching leave slips:', err);
           this.routerService.navigate(['/error', err.status]);
           throw err;
         }
       ),
     ]).then(() => {
-      console.log('Manager data initialization complete');
       this.managerData.set({
         vacations: {},
         leaves: {},
@@ -116,7 +111,6 @@ export class ManagerService {
         userId: leaveSlip.userId!,
         leaveSlip,
       }));
-    console.log('Future leaves computed:', future, 'now:', now);
     return future;
   });
 
@@ -128,7 +122,6 @@ export class ManagerService {
         userId: leaveSlip.userId!,
         leaveSlip,
       }));
-    console.log('Past leaves computed:', past, 'now:', now);
     return past;
   });
 
@@ -194,7 +187,7 @@ export class ManagerService {
     return new Promise((resolve, reject) => {
       this.http
         .put<LeaveSlip>(
-          `${environment.apiUrl}/leaveslip/${leaveSlip.id}/${status}`,
+          `${environment.apiUrl}/leaverequest/${leaveSlip.id}/${status.toUpperCase()}`,
           {},
         )
         .pipe(take(1))

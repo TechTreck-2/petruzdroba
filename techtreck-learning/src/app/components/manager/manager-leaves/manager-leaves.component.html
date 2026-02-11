@@ -13,12 +13,11 @@
           <th>End time</th>
           <th>Reason</th>
           <th>Status</th>
-          <th>Submitted on</th>
         </tr>
         @for (leave of filteredPendingLeaveRequests; track leave) {
           <tr>
             <td>{{ getUserEmail(leave.userId) }}</td>
-            <td>{{ leave.leaveSlip.date | date: 'mediumDate' }}</td>
+            <td>{{ leave.leaveSlip.startTime | date: 'mediumDate' }}</td>
             <td>{{ leave.leaveSlip.startTime | date: 'hh:mm a' }}</td>
             <td>{{ leave.leaveSlip.endTime | date: 'hh:mm a' }}</td>
             <td>{{ leave.leaveSlip.description }}</td>
@@ -37,7 +36,7 @@
                 <p>Accept</p>
               </button>
             </td>
-            <td>{{ leave.leaveSlip.startTime | date: 'mediumDate' }}</td>
+            <!-- <td>{{ leave.leaveSlip.startTime | date: 'mediumDate' }}</td> -->
           </tr>
         }
       </tbody>
@@ -77,7 +76,7 @@
               ></i>
             </td>
             <td>{{ getUserEmail(leave.userId) }}</td>
-            <td>{{ leave.leaveSlip.date | date: 'longDate' }}</td>
+            <td>{{ leave.leaveSlip.startTime | date: 'mediumDate' }}</td>
             <td>{{ leave.leaveSlip.startTime | date: 'hh:mm a' }}</td>
             <td>{{ leave.leaveSlip.endTime | date: 'hh:mm a' }}</td>
             <td>
