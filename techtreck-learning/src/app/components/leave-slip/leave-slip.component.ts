@@ -1,12 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { LeaveSlipPickerComponent } from './leave-slip-picker/leave-slip-picker.component';
 import { LeaveSlipService } from '../../service/leave-slip.service';
 import { LeaveSlip } from '../../model/leave-slip.interface';
 import { LeaveSlipTableComponent } from './leave-slip-table/leave-slip-table.component';
 import { ProgressBarComponent } from '../../shared/progress-bar/progress-bar.component';
 import { DatePipe } from '@angular/common';
-import { LeaveSlipData } from '../../model/leaveslip-data.interface';
 import { MatTabsModule } from '@angular/material/tabs';
+import { UserDataService } from '../../service/user-data.service';
 
 @Component({
   selector: 'app-leave-slip',
@@ -22,30 +22,42 @@ import { MatTabsModule } from '@angular/material/tabs';
   styleUrl: './leave-slip.component.css',
 })
 export class LeaveSlipComponent implements OnInit {
-  protected leaveData = signal<LeaveSlipData>({} as LeaveSlipData);
-  private leaveSlipService = inject(LeaveSlipService);
+  protected leaveSlipService = inject(LeaveSlipService);
+  protected userDataService = inject(UserDataService);
 
-  async ngOnInit(): Promise<void> {
-    this.leaveSlipService.initialize();
-    this.leaveData.set(this.leaveSlipService.leaveSlip);
+  ngOnInit(): void {
+    this.leaveSlipService.loadLeaveSlips();
   }
 
   get leaveTime() {
-    return new Date(this.leaveData().remainingTime);
+    return new Date(this.leaveSlipService.remainingTime());
   }
 
-  addLeave(leaveData: LeaveSlip) {
-    this.leaveSlipService.addLeave(leaveData);
-    this.leaveData.set(this.leaveSlipService.leaveSlip);
+  get futureLeaves() {
+    return this.leaveSlipService.futureLeaves$();
   }
 
-  deleteLeave(index: number, tableType: 'future' | 'past') {
-    this.leaveSlipService.deleteLeave(index, tableType);
-    this.leaveData.set(this.leaveSlipService.leaveSlip);
+  get pastLeaves() {
+    return this.leaveSlipService.pastLeaves$();
   }
 
-  editLeave([oldLeave, newLeave]: [LeaveSlip, LeaveSlip]) {
-    this.leaveSlipService.editLeaveSlip(oldLeave, newLeave);
-    this.leaveData.set(this.leaveSlipService.leaveSlip);
+  get remainingTime() {
+    return this.leaveSlipService.remainingTime();
+  }
+
+  addLeave(leaveData: Omit<LeaveSlip, 'id'>) {
+    this.leaveSlipService.addLeaveSlip(leaveData);
+  }
+
+  deleteLeave(leaveSlipId: number) {
+    this.leaveSlipService.deleteLeaveSlip(leaveSlipId);
+  }
+
+  editLeave([oldVacation, newVacation]: [LeaveSlip, LeaveSlip]) {
+    this.leaveSlipService.updateLeaveSlip(newVacation);
+  }
+
+  get personalTime(){
+    return this.userDataService.user().personalTime;
   }
 }

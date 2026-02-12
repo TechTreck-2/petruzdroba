@@ -17,7 +17,7 @@
 .leave-table th, .leave-table td {
   padding-top: 8px;
   text-align: center;
-  
+
 }
 
 .btn-icon, .btn-icon-primary{
@@ -40,17 +40,17 @@
   cursor: not-allowed;
 }
 
-.pending{
+.pending, .PENDING{
   color: yellow;
 }
-.accepted{
+.accepted, .ACCEPTED{
   color: chartreuse;
 }
-.denied{
+.denied, .DENIED{
   color: red;
 }
 
-.ignored{
+.ignored, .IGNORED{
   color:grey;
 }
 
@@ -66,7 +66,7 @@
 .txt-sort
 {
   margin-right: 15px;
-  
+
 }
 
 .btn-sort

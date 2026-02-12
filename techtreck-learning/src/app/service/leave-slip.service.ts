@@ -1,205 +1,166 @@
-import {
-  computed,
-  effect,
-  inject,
-  Injectable,
-  OnDestroy,
-  signal,
-} from '@angular/core';
-import { LeaveSlip } from '../model/leave-slip.interface';
-import { LeaveSlipData } from '../model/leaveslip-data.interface';
+import { inject, Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { take } from 'rxjs';
+import { LeaveSlip } from '../model/leave-slip.interface';
 import { UserDataService } from './user-data.service';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
-export class LeaveSlipService implements OnDestroy {
+export class LeaveSlipService {
   private userData = inject(UserDataService);
-  private routerService = inject(Router);
+  private router = inject(Router);
   private http = inject(HttpClient);
-  private subscription: any;
 
-  private leaveSlipData = signal<LeaveSlipData>({
-    futureLeaves: [],
-    pastLeaves: [],
-    remainingTime: 21600000, // 6 hours (21600000ms = 6h × 60m × 60s × 1000ms)
-  });
+  private futureLeaves = signal<LeaveSlip[]>([]);
+  private pastLeaves = signal<LeaveSlip[]>([]);
+  private remainingTimeSignal = signal<number>(21600000); // 6 hours in milliseconds
 
-  constructor() {
-    effect(
-      () => {
-        this.initialize();
-      },
-      { allowSignalWrites: true }
-    );
-  }
+  readonly futureLeaves$ = computed(() => this.futureLeaves());
+  readonly pastLeaves$ = computed(() => this.pastLeaves());
+  readonly remainingTime = computed(() => this.remainingTimeSignal());
+  readonly leaveSlipData = computed(() => ({
+    futureLeaves: this.futureLeaves(),
+    pastLeaves: this.pastLeaves(),
+    remainingTime: this.remainingTimeSignal(),
+  }));
 
-  initialize(): void {
-    if (this.userData.isLoggedIn()) {
-      this.http
-        .get<LeaveSlipData>(
-          `${environment.apiUrl}/leaveslip/get/${this.userData.user().id}/`
-        )
-        .pipe(take(1))
-        .subscribe({
-          next: (res) => {
-            const processedData = this.processExpiredLeaves(res);
-            this.leaveSlipData.set(processedData);
-            this.updateLeaveData();
-          },
-          error: (err) => {
-            console.error('Error fetching vacation data:', err);
-          },
-        });
-    }
-  }
+  loadLeaveSlips(): void {
+    if (!this.userData.isLoggedIn()) return;
 
-  private processExpiredLeaves(data: LeaveSlipData): LeaveSlipData {
-    const today = new Date();
-    let futureLeaves = data.futureLeaves || [];
-    let pastLeaves = data.pastLeaves || [];
+    const userId = this.userData.user().id;
 
-    futureLeaves = futureLeaves.filter((leave) => {
-      if (new Date(leave.date) < today) {
-        if (leave.status === 'pending') {
-          leave.status = 'ignored';
-        }
-        pastLeaves.push(leave);
-        return false; // Remove from future
-      }
-      return true; // Keep in future
-    });
-
-    return {
-      futureLeaves,
-      pastLeaves,
-      remainingTime: data.remainingTime,
-    };
-  }
-
-  private readonly remainingTimeSignal = computed(
-    () => this.leaveSlipData().remainingTime
-  );
-  private readonly pastLeavesSignal = computed(
-    () => this.leaveSlipData().pastLeaves
-  );
-  private readonly futureLeavesSignal = computed(
-    () => this.leaveSlipData().futureLeaves
-  );
-
-  private readonly _leaveSlipData = computed(() => this.leaveSlipData());
-
-  get remainingTime(): number {
-    return this.remainingTimeSignal();
-  }
-
-  get pastLeaves(): LeaveSlip[] {
-    return this.pastLeavesSignal();
-  }
-
-  get futureLeaves(): LeaveSlip[] {
-    return this.futureLeavesSignal();
-  }
-
-  get leaveSlip(): LeaveSlipData {
-    return this._leaveSlipData();
-  }
-
-  addLeave(leaveData: LeaveSlip) {
-    this.leaveSlipData.update((currentData) => ({
-      ...currentData,
-      futureLeaves: [...currentData.futureLeaves, leaveData],
-    }));
-    this.updateLeaveData();
-  }
-
-  restoreLeaveTime(index: number) {
-    this.leaveSlipData.update((currentData) => {
-      if (currentData.futureLeaves[index].status === 'accepted') {
-        const dateA = new Date(currentData.futureLeaves[index].startTime);
-        const dateB = new Date(currentData.futureLeaves[index].endTime);
-        return {
-          ...currentData,
-          remainingTime:
-            currentData.remainingTime + (dateB.getTime() - dateA.getTime()),
-        };
-      }
-      return currentData;
-    });
-    this.updateLeaveData();
-  }
-
-  deleteLeave(index: number, tableType: 'future' | 'past') {
-    this.leaveSlipData.update((currentData) => {
-      if (tableType === 'future') {
-        this.restoreLeaveTime(index);
-        return {
-          ...currentData,
-          futureLeaves: [
-            ...currentData.futureLeaves.slice(0, index),
-            ...currentData.futureLeaves.slice(index + 1),
-          ],
-        };
-      } else {
-        return {
-          ...currentData,
-          pastLeaves: [
-            ...currentData.pastLeaves.slice(0, index),
-            ...currentData.pastLeaves.slice(index + 1),
-          ],
-        };
-      }
-    });
-    this.updateLeaveData();
-  }
-
-  editLeaveSlip(oldLeave: LeaveSlip, newLeaveData: LeaveSlip) {
-    const currentData = this.leaveSlipData();
-    const index = this.findLeaveIndex(oldLeave);
-
-    if (index !== -1) {
-      this.restoreLeaveTime(index);
-      const updatedLeaves = [...currentData.futureLeaves];
-      updatedLeaves[index] = { ...newLeaveData, status: 'pending' };
-
-      this.leaveSlipData.set({
-        ...currentData,
-        futureLeaves: updatedLeaves,
+    this.http
+      .get<LeaveSlip[]>(`${environment.apiUrl}/leaverequest/user/${userId}/FUTURE`)
+      .pipe(take(1))
+      .subscribe({
+        next: (res) => {
+          this.futureLeaves.set(res);
+        },
+        error: (err) => {
+          console.error('Error fetching future leave requests:', err);
+          this.router.navigate(['/error', err.status]);
+        },
       });
-      this.updateLeaveData();
-    }
+
+    this.http
+      .get<LeaveSlip[]>(`${environment.apiUrl}/leaverequest/user/${userId}/PAST`)
+      .pipe(take(1))
+      .subscribe({
+        next: (res) => {
+          this.pastLeaves.set(res);
+        },
+        error: (err) => {
+          console.error('Error fetching past leave requests:', err);
+        },
+      });
+
+    this.loadRemainingTime();
   }
 
-  findLeaveIndex(leave: LeaveSlip): number {
-    return this.leaveSlipData().futureLeaves.findIndex(
-      (item) =>
-        new Date(item.date).getTime() === new Date(leave.date).getTime() &&
-        item.description === leave.description
-    );
+  private loadRemainingTime(): void {
+    if (!this.userData.isLoggedIn()) return;
+
+    this.http
+      .get<number>(
+        `${environment.apiUrl}/leaverequest/remaining/${this.userData.user().id}`
+      )
+      .pipe(take(1))
+      .subscribe({
+        next: (res) => {
+          this.remainingTimeSignal.set(res);
+        },
+        error: (err) => {
+          console.error('Error fetching remaining time:', err);
+        },
+      });
   }
 
-  updateLeaveData() {
-    if (this.userData.isLoggedIn()) {
-      this.subscription = this.http
-        .put(`${environment.apiUrl}/leaveslip/update/`, {
-          userId: this.userData.user().id,
-          data: this.leaveSlipData(),
-        })
-        .subscribe({
-          next: (res) => {},
-          error: (err) => {
-            //this is for server eror handling
-            this.routerService.navigate(['/error', err.status]);
-          },
-        });
-    }
+  addLeaveSlip(leaveSlip: Omit<LeaveSlip, 'id'>): void {
+    this.http
+      .post<LeaveSlip>(`${environment.apiUrl}/leaverequest`, {
+        userId: this.userData.user().id,
+        startTime: leaveSlip.startTime,
+        endTime: leaveSlip.endTime,
+        description: leaveSlip.description,
+      })
+      .pipe(take(1))
+      .subscribe({
+        next: (newLeaveSlip) => {
+          newLeaveSlip.userId = this.userData.user().id;
+          this.futureLeaves.update((leaves) => [...leaves, newLeaveSlip]);
+          this.loadRemainingTime();
+        },
+        error: (err) => {
+          console.error('Error adding leave request:', err);
+          this.router.navigate(['/error', err.status]);
+        },
+      });
   }
 
-  ngOnDestroy() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
+  updateLeaveSlip(leaveSlip: LeaveSlip): void {
+    this.http
+      .put<LeaveSlip>(`${environment.apiUrl}/leaverequest`, {
+        id: leaveSlip.id,
+        userId: this.userData.user().id,
+        startTime: leaveSlip.startTime,
+        endTime: leaveSlip.endTime,
+        description: leaveSlip.description,
+      })
+      .pipe(take(1))
+      .subscribe({
+        next: (updatedLeaveSlip) => {
+          this.futureLeaves.update((leaves) =>
+            leaves.map((l) => (l.id === leaveSlip.id ? updatedLeaveSlip : l))
+          );
+          this.loadRemainingTime();
+        },
+        error: (err) => {
+          console.error('Error updating leave request:', err);
+          this.router.navigate(['/error', err.status]);
+        },
+      });
+  }
+
+  deleteLeaveSlip(leaveSlipId: number): void {
+    this.http
+      .delete<void>(`${environment.apiUrl}/leaverequest/${leaveSlipId}`)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.futureLeaves.update((leaves) =>
+            leaves.filter((l) => l.id !== leaveSlipId)
+          );
+          this.pastLeaves.update((leaves) =>
+            leaves.filter((l) => l.id !== leaveSlipId)
+          );
+          this.loadRemainingTime();
+        },
+        error: (err) => {
+          console.error('Error deleting leave request:', err);
+          this.router.navigate(['/error', err.status]);
+        },
+      });
+  }
+
+  updateLeaveSlipStatus(leaveSlipId: number, status: LeaveSlip['status']): void {
+    this.http
+      .put<LeaveSlip>(
+        `${environment.apiUrl}/leaverequest/${leaveSlipId}/${status.toUpperCase()}`,
+        {}
+      )
+      .pipe(take(1))
+      .subscribe({
+        next: (updatedLeaveSlip) => {
+          this.futureLeaves.update((leaves) =>
+            leaves.map((l) => (l.id === leaveSlipId ? updatedLeaveSlip : l))
+          );
+          this.loadRemainingTime();
+        },
+        error: (err) => {
+          console.error('Error updating leave request status:', err);
+          this.router.navigate(['/error', err.status]);
+        },
+      });
   }
 }

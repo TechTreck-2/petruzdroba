@@ -42,7 +42,7 @@
 
               <tr>
                 <td class="txt-head">Personal time</td>
-                <td class="txt-right">{{ user?.personalTime }}</td>
+                <td class="txt-right">{{ user?.personalTime | date: "HH:mm" : 'UTC' }}</td>
               </tr>
               <tr>
                 <td class="txt-head">Clearence</td>

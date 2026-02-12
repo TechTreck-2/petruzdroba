@@ -68,3 +68,10 @@ export function formatMilliseconds(ms: number): string {
   const minutes = Math.floor((ms % 3600000) / 60000);
   return `0${hours}:${minutes.toString().padStart(2, '0')}`;
 }
+
+export function combineDateAndTime(date: Date, time: string): Date {
+  const [hours, minutes] = time.split(':').map(Number);
+  const combined = new Date(date);
+  combined.setHours(hours, minutes, 0, 0);
+  return combined;
+}

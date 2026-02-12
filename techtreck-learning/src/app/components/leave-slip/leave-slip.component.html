@@ -1,30 +1,38 @@
 <div class="leave">
   <div class="info">
-    <h1>You have {{leaveTime | date: "HH:mm" : 'UTC'}} paid leave time</h1>
-    <app-progress-bar [currentValue]="21600000 - leaveData().remainingTime" [totalValue]="21600000" class="vacation" />
+    <h1>You have {{remainingTime | date: "HH:mm" : 'UTC'}} paid leave time</h1>
+    <app-progress-bar
+      [currentValue]="personalTime - remainingTime"
+      [totalValue]="personalTime"
+      class="vacation"
+    />
   </div>
-
   <div class="leave-plan">
     <app-leave-slip-picker (addLeave)="addLeave($event)" />
     <div class="table">
       <mat-tab-group>
         <mat-tab label="Upcoming Leaves">
           <div class="tab-box">
-            @if(leaveData().futureLeaves.length) {
-            <app-leave-slip-table [leaveList]="leaveData().futureLeaves"
-              (onDeleteLeaveEvent)="deleteLeave($event, 'future')" (onEditLeaveEvent)="editLeave($event)" />
+            @if(futureLeaves.length) {
+              <app-leave-slip-table
+                [leaveList]="futureLeaves"
+                (onDeleteLeaveEvent)="deleteLeave($event)"
+                (onEditLeaveEvent)="editLeave($event)"
+              />
             } @else {
-            <p>There's no upcoming leave tickets</p>
+              <p>There's no upcoming leave tickets</p>
             }
           </div>
         </mat-tab>
         <mat-tab label="Past Leaves">
           <div class="tab-box">
-            @if(leaveData().pastLeaves.length) {
-            <app-leave-slip-table [leaveList]="leaveData().pastLeaves"
-              (onDeleteLeaveEvent)="deleteLeave($event, 'past')" />
+            @if(pastLeaves.length) {
+              <app-leave-slip-table
+                [leaveList]="pastLeaves"
+                (onDeleteLeaveEvent)="deleteLeave($event)"
+              />
             } @else {
-            <p>There's no past leave tickets</p>
+              <p>There's no past leave tickets</p>
             }
           </div>
         </mat-tab>

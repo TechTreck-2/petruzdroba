@@ -109,19 +109,19 @@
   padding-left: 10%;
 }
 
-.pending {
+.pending, .PENDING {
   color: yellow;
 }
 
-.accepted {
+.accepted, .ACCEPTED {
   color: chartreuse;
 }
 
-.denied {
+.denied, .DENIED {
   color: red;
 }
 
-.ignored {
+.ignored, .IGNORED {
   color: grey;
 }
 
